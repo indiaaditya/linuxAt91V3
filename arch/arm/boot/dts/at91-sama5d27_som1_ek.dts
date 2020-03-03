@@ -30,14 +30,14 @@
 	};
 
 	ahb {
-		usb0: gadget@300000 {
+		usb0: gadget@300000 {/*chkd: disabled required*/
 			atmel,vbus-gpio = <&pioA PIN_PD20 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&pinctrl_usba_vbus>;
-			status = "okay";
+			status = "disabled";
 		};
 
-		usb1: ohci@400000 {
+		usb1: ohci@400000 {/*chkd: disabled required */
 			num-ports = <3>;
 			atmel,vbus-gpio = <0 /* &pioA PIN_PD20 GPIO_ACTIVE_HIGH */
 					   &pioA PIN_PA27 GPIO_ACTIVE_HIGH
@@ -45,21 +45,82 @@
 					  >;
 			pinctrl-names = "default";
 			pinctrl-0 = <&pinctrl_usb_default>;
-			status = "okay";
+			status = "disabled";
 		};
+
+		ebi: ebi@10000000 {/*Reference: https://github.com/linux4sam/linux-at91/blob/linux-4.19-at91/arch/arm/boot/dts/at91-sama5d2_ptc_ek.dts*/
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_nand_default>;
+			status = "okay"; 
+
+			nand_controller: nand-controller {
+				status = "okay";
+
+				nand@3 {
+					reg = <0x3 0x0 0x2>;
+					atmel,rb = <0>;
+					nand-bus-width = <8>;
+					nand-ecc-mode = "hw";
+					nand-on-flash-bbt;
+					label = "atmel_nand";
+
+					partitions {
+						compatible = "fixed-partitions";
+						#address-cells = <1>;
+						#size-cells = <1>;
+
+						at91bootstrap@0 {
+							label = "bootstrap";
+							reg = <0x0 0x40000>;
+						};
+
+						bootloader@40000 {
+							label = "bootloader";
+							reg = <0x40000 0xc0000>;
+						};
+
+						bootloaderenvred@0x100000 {
+							label = "bootloader env redundant";
+							reg = <0x100000 0x40000>;
+						};
+
+						bootloaderenv@0x140000 {
+							label = "bootloader env";
+							reg = <0x140000 0x40000>;
+						};
+
+						dtb@180000 {
+							label = "device tree";
+							reg = <0x180000 0x80000>;
+						};
+
+						kernel@200000 {
+							label = "kernel";
+							reg = <0x200000 0x600000>;
+						};
+
+						rootfs@800000 {
+							label = "rootfs";
+							reg = <0x800000 0x1f800000>;
+						};
+					};
+				};
+			};
+		};
+
 
 		usb2: ehci@500000 {
 			status = "okay";
 		};
 
-		sdmmc0: sdio-host@a0000000 {
+		sdmmc0: sdio-host@a0000000 {/*chkd: disable required */
 			bus-width = <8>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&pinctrl_sdmmc0_default>;
-			status = "okay";
+			status = "disabled";
 		};
 
-		sdmmc1: sdio-host@b0000000 {
+		sdmmc1: sdio-host@b0000000 {/*chkd: okay required  */
 			bus-width = <4>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&pinctrl_sdmmc1_default>;
@@ -86,17 +147,17 @@
 				};
 			};
 
-			isc: isc@f0008000 {
+			isc: isc@f0008000 {/*chkd: disabled required */
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_isc_base &pinctrl_isc_data_8bit &pinctrl_isc_data_9_10 &pinctrl_isc_data_11_12>;
-				status = "okay";
+				status = "disabled";
 			};
 
 			qspi1: spi@f0024000 {
 				status = "okay";
 			};
 
-			spi0: spi@f8000000 {
+			spi0: spi@f8000000 {/*chkd: okay required */
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_spi0_default>;
 				status = "okay";
@@ -106,7 +167,7 @@
 				status = "okay";
 			};
 
-			tcb0: timer@f800c000 {
+			tcb0: timer@f800c000 {/* NCR*/
 				timer0: timer@0 {
 					compatible = "atmel,tcb-timer";
 					reg = <0>;
@@ -118,7 +179,15 @@
 				};
 			};
 
-			uart1: serial@f8020000 {
+			uart0:serial@0xf801c000 {/* chkd okay expected: default*/
+				pinctrl-names = "default";
+                                pinctrl-0 = <&pinctrl_uart0_default>;
+                                atmel,use-dma-rx;
+                                atmel,use-dma-tx;
+                                status = "okay";
+			};
+
+			uart1: serial@f8020000 {/* chkd okay expected: default */
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_uart1_default>;
 				atmel,use-dma-rx;
@@ -126,32 +195,36 @@
 				status = "okay";
 			};
 
-			uart2: serial@f8024000 {
+			uart2: serial@f8024000 {/*CHKD: disabled required */
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_mikrobus2_uart>;
 				atmel,use-dma-rx;
 				atmel,use-dma-tx;
-				status = "okay";
+				status = "disabled";
 			};
 
-			i2c0: i2c@f8028000 {
+			i2c0: i2c@f8028000 {/*THANH CHKD: OK REQD*/
 				dmas = <0>, <0>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_i2c0_default>;
 				status = "okay";
 			};
 
-			pwm0: pwm@f802c000 {
+			pwm0: pwm@f802c000 { /* chkd: disabled required */
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_mikrobus1_pwm &pinctrl_mikrobus2_pwm>;
 				status = "disabled"; /* Conflict with leds. */
 			};
 
 			flx1: flexcom@f8038000 {
-				atmel,flexcom-mode = <ATMEL_FLEXCOM_MODE_TWI>;
-				status = "okay";
+				/*atmel,flexcom-mode = <ATMEL_FLEXCOM_MODE_TWI>;
+				status = "okay";*/
+				
+				atmel,flexcom-mode = <ATMEL_FLEXCOM_MODE_USART>;
+                                status = "disabled";
 
-				i2c2: i2c@600 {
+
+				i2c2: i2c@600 {/*chkd: disabled required*/
 					compatible = "atmel,sama5d2-i2c";
 					reg = <0x600 0x200>;
 					interrupts = <20 IRQ_TYPE_LEVEL_HIGH 7>;
@@ -163,7 +236,7 @@
 					pinctrl-names = "default";
 					pinctrl-0 = <&pinctrl_mikrobus_i2c>;
 					atmel,fifo-size = <16>;
-					status = "okay";
+					status = "disabled";
 				};
 			};
 
@@ -181,15 +254,15 @@
 				status = "okay";
 			};
 
-			uart3: serial@fc008000 {
+			uart3: serial@fc008000 {/*chkd: okay required */
 				atmel,use-dma-rx;
 				atmel,use-dma-tx;
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_uart3_default>;
-				status = "disabled"; /* Conflict with isc. */
+				status = "okay"; /* Conflict with isc. */
 			};
 
-			uart4: serial@fc00c000 {
+			uart4: serial@fc00c000 { /* chkd: okay required */
 				atmel,use-dma-rx;
 				atmel,use-dma-tx;
 				pinctrl-names = "default";
@@ -197,11 +270,15 @@
 				status = "okay";
 			};
 
-			flx3: flexcom@fc014000 {
+			flx3: flexcom@fc014000 {/*chkd: enabled the flx3 in usart mode */
+				/*
 				atmel,flexcom-mode = <ATMEL_FLEXCOM_MODE_SPI>;
 				status = "disabled";
+				*/
+				atmel,flexcom-mode = <ATMEL_FLEXCOM_MODE_USART>;
+                                status = "okay";
 
-				uart7: serial@200 {
+				uart7: serial@200 {/*chkd: Believe that this is the right configuration */
 					compatible = "atmel,at91sam9260-usart";
 					reg = <0x200 0x200>;
 					interrupts = <22 IRQ_TYPE_LEVEL_HIGH 7>;
@@ -210,10 +287,10 @@
 					pinctrl-names = "default";
 					pinctrl-0 = <&pinctrl_flx3_default>;
 					atmel,fifo-size = <32>;
-					status = "disabled"; /* Conflict with isc. */
+					status = "okay"; /* Conflict with isc. */
 				};
 
-				spi2: spi@400 {
+				spi2: spi@400 {/*chkd: correct if uart is enabled then this must be disabled */
 					compatible = "atmel,at91rm9200-spi";
 					reg = <0x400 0x200>;
 					interrupts = <22 IRQ_TYPE_LEVEL_HIGH 7>;
@@ -226,11 +303,11 @@
 				};
 			};
 
-			flx4: flexcom@fc018000 {
+			flx4: flexcom@fc018000 {/*chkd: uart6 enabled but some pins are removed from pinctrl_flx4_default*/
 				atmel,flexcom-mode = <ATMEL_FLEXCOM_MODE_SPI>;
 				status = "okay";
 
-				uart6: serial@200 {
+				uart6: serial@200 {/*chkd: only PC28 and PC29 are enabled */
 					compatible = "atmel,at91sam9260-usart";
 					reg = <0x200 0x200>;
 					interrupts = <23 IRQ_TYPE_LEVEL_HIGH 7>;
@@ -239,10 +316,10 @@
 					pinctrl-names = "default";
 					pinctrl-0 = <&pinctrl_flx4_default>;
 					atmel,fifo-size = <32>;
-					status = "disabled"; /* Conflict with spi3 and i2c3. */
+					status = "okay"; /* Conflict with spi3 and i2c3. */
 				};
 
-				spi3: spi@400 {
+				spi3: spi@400 {/* chkd: disabled required */
 					compatible = "atmel,at91rm9200-spi";
 					reg = <0x400 0x200>;
 					interrupts = <23 IRQ_TYPE_LEVEL_HIGH 7>;
@@ -251,10 +328,10 @@
 					pinctrl-names = "default";
 					pinctrl-0 = <&pinctrl_mikrobus_spi &pinctrl_mikrobus1_spi_cs &pinctrl_mikrobus2_spi_cs>;
 					atmel,fifo-size = <16>;
-					status = "okay"; /* Conflict with uart6 and i2c3. */
+					status = "disabled"; /* Conflict with uart6 and i2c3. */
 				};
 
-				i2c3: i2c@600 {
+				i2c3: i2c@600 {/* chkd: disabled required */
 					compatible = "atmel,sama5d2-i2c";
 					reg = <0x600 0x200>;
 					interrupts = <23 IRQ_TYPE_LEVEL_HIGH 7>;
@@ -270,21 +347,31 @@
 				};
 			};
 
-			i2c1: i2c@fc028000 {
+			i2c1: i2c@fc028000 {/*chkd: disabled required */
 				dmas = <0>, <0>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_i2c1_default>;
-				status = "okay";
-			};
-
-			adc: adc@fc030000 {
-				vddana-supply = <&vddana>;
-				vref-supply = <&advref>;
-
 				status = "disabled";
 			};
 
+			adc: adc@fc030000 {/*chkd: enabled, also respective pins configured as gpio */
+				vddana-supply = <&vddana>;
+				vref-supply = <&advref>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_adc_default>;
+				status = "okay";
+			};
+
 			pinctrl@fc038000 {
+				pinctrl_adc_default: adc_default{
+					pinmux = <PIN_PD19__GPIO>,
+						 <PIN_PD20__GPIO>,
+						 <PIN_PD23__GPIO>,
+						 <PIN_PD24__GPIO>,
+						 <PIN_PD25__GPIO>,
+					 	 <PIN_PD26__GPIO>;
+					bias-disable;
+				}
 
 				pinctrl_can1_default: can1_default {
 					pinmux = <PIN_PC26__CANTX1>,
@@ -295,8 +382,6 @@
 				pinctrl_flx3_default: flx3_default {
 					pinmux = <PIN_PC20__FLEXCOM3_IO0>,
 						 <PIN_PC19__FLEXCOM3_IO1>,
-						 <PIN_PC18__FLEXCOM3_IO2>,
-						 <PIN_PC21__FLEXCOM3_IO3>,
 						 <PIN_PC22__FLEXCOM3_IO4>;
 					bias-disable;
 				};
@@ -351,9 +436,8 @@
 				};
 
 				pinctrl_led_gpio_default: led_gpio_default {
-					pinmux = <PIN_PA10__GPIO>,
-						 <PIN_PB1__GPIO>,
-						 <PIN_PA31__GPIO>;
+					pinmux = <PIN_PC30__GPIO>,
+						 <PIN_PC31__GPIO>;
 					bias-pull-up;
 				};
 
@@ -379,6 +463,32 @@
 					};
 				};
 
+				pinctrl_nand_default: nand_default {
+					re_we_data {
+						pinmux = <PIN_PA0__D0>,
+							 <PIN_PA1__D1>,
+							 <PIN_PA2__D2>,
+							 <PIN_PA3__D3>,
+							 <PIN_PA4__D4>,
+							 <PIN_PA5__D5>,
+							 <PIN_PA6__D6>,
+							 <PIN_PA7__D7>,
+							 <PIN_PA8__NWE_NANDWE>,
+							 <PIN_PA12__NRD_NANDOE>;
+						bias-pull-up;
+						atmel,drive-strength = <ATMEL_PIO_DRVSTR_ME>;
+					};
+
+					ale_cle_rdy_cs {
+						pinmux = <PIN_PB0__A21_NANDALE>,
+							 <PIN_PB1__A22_NANDCLE>,
+							 <PIN_PD8__NANDRDY>,
+							 <PIN_PA9__NCS3>;
+						bias-pull-up;
+					};
+				};
+
+
 				pinctrl_sdmmc1_default: sdmmc1_default {
 					cmd_data {
 						pinmux = <PIN_PA28__SDMMC1_CMD>,
@@ -396,11 +506,19 @@
 					};
 				};
 
-				pinctrl_spi0_default: spi0_default {
+				pinctrl_spi0_default: spi0_default {/*NPCS1 and NPCS2 have been added */
 					pinmux = <PIN_PA14__SPI0_SPCK>,
 						 <PIN_PA15__SPI0_MOSI>,
 						 <PIN_PA16__SPI0_MISO>,
-						 <PIN_PA17__SPI0_NPCS0>;
+						 <PIN_PA17__SPI0_NPCS0>,
+						 <PIN_PA29__SPI0_NPCS1>,
+						 <PIN_PA27__SPI0_NPCS2>;
+					bias-disable;
+				};
+
+				pinctrl_uart0_default: uart0_default {
+					pinmux = <PIN_PB26__URXD0>,
+						 <PIN_PB27__UTXD0>;
 					bias-disable;
 				};
 
@@ -505,9 +623,9 @@
 				pinctrl_flx4_default: flx4_uart_default {
 					pinmux = <PIN_PC28__FLEXCOM4_IO0>,
 						 <PIN_PC29__FLEXCOM4_IO1>,
-						 <PIN_PC30__FLEXCOM4_IO2>,
-						 <PIN_PC31__FLEXCOM4_IO3>,
-						 <PIN_PD0__FLEXCOM4_IO4>;
+						/* <PIN_PC30__FLEXCOM4_IO2>, /* These pins disabled as they have conflict with other pins */
+						/* <PIN_PC31__FLEXCOM4_IO3>,
+						 <PIN_PD0__FLEXCOM4_IO4>;*/
 					bias-disable;
 				};
 			};
@@ -515,23 +633,295 @@
 			can1: can@fc050000 {
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_can1_default>;
-				status = "okay";
+				status = "disabled";
 			};
 		};
 	};
 
 	gpio_keys {
 		compatible = "gpio-keys";
-
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_key_gpio_default>;
-
-		pb4 {
+		spl_rst {
 			label = "USER";
-			gpios = <&pioA PIN_PA29 GPIO_ACTIVE_LOW>;
-			linux,code = <0x104>;
-			wakeup-source;
+			gpios = <&pioA PIN_PC10 GPIO_ACTIVE_LOW>;
+			linux,code = <0x41>;
+			debounce-interval = 25;
 		};
+		input_nonIso1{
+			label = "InputNonIso1";
+                        gpios = <&pioA PIN_PA23 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x42>;
+			debounce-interval = 25;
+
+		};
+		input_nonIso2{
+			label = "InputNonIso2";
+                        gpios = <&pioA PIN_PA24 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x43>;
+			debounce-interval = 25;
+		};
+		input_nonIso3{
+ 			label = "InputNonIso3";
+                        gpios = <&pioA PIN_PA25 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x44>;
+			debounce-interval = 25;
+
+		};
+		input_nonIso4{
+ 			label = "InputNonIso4";
+                        gpios = <&pioA PIN_PA26 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x45>;
+			debounce-interval = 25;
+		};
+		input_Iso1{
+			label = "InputIso1";
+                        gpios = <&pioA PIN_PB00 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x46>;
+			debounce-interval = 25;
+		};
+		input_Iso2{
+ 			label = "InputIso2";
+                        gpios = <&pioA PIN_PB01 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x47>;
+			debounce-interval = 25;
+		};
+		input_Iso3{
+ 			label = "InputIso3";
+                        gpios = <&pioA PIN_PB02 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x48>;
+			debounce-interval = 25;
+		};
+		input_Iso4{
+ 			label = "InputIso4";
+                        gpios = <&pioA PIN_PB11 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x49>;
+			debounce-interval = 25;
+                };
+                input_Iso5{
+ 			label = "InputIso5";
+                        gpios = <&pioA PIN_PB12 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x4A>;
+			debounce-interval = 25;
+                };
+                input_Iso6{
+ 			label = "InputIso6";
+                        gpios = <&pioA PIN_PB13 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x4B>;
+			debounce-interval = 25;
+                };
+		input_Iso7{
+ 			label = "InputIso7";
+                        gpios = <&pioA PIN_PB14 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x4C>;
+			debounce-interval = 25;
+                };
+                input_Iso8{
+ 			label = "InputIso8";
+                        gpios = <&pioA PIN_PB15 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x4D>;
+			debounce-interval = 25;
+                };
+                input_Iso9{
+ 			label = "InputIso9";
+                        gpios = <&pioA PIN_PB16 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x4E>;
+			debounce-interval = 25;
+                };
+		input_Iso10{
+ 			label = "InputIso10";
+                        gpios = <&pioA PIN_PB17 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x4F>;
+			debounce-interval = 25;
+                };
+                input_Iso11{
+			label = "InputIso11";
+                        gpios = <&pioA PIN_PB18 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x50>;
+			debounce-interval = 25;
+                };
+                input_Iso12{
+			label = "InputIso12";
+                        gpios = <&pioA PIN_PB19 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x51>;
+			debounce-interval = 25;
+                };
+		input_Iso13{
+			label = "InputIso13";
+                        gpios = <&pioA PIN_PB20 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x52>;
+			debounce-interval = 25;
+                };
+                input_Iso14{
+			label = "InputIso14";
+                        gpios = <&pioA PIN_PB21 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x53>;
+			debounce-interval = 25;
+                };
+                input_Iso15{
+			label = "InputIso15";
+                        gpios = <&pioA PIN_PB22 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x54>;
+			debounce-interval = 25;
+                };
+                input_Iso16{
+			label = "InputIso16";
+                        gpios = <&pioA PIN_PB23 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x55>;
+			debounce-interval = 25;
+                };
+                input_Iso17{
+			label = "InputIso17";
+                        gpios = <&pioA PIN_PB24 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x56>;
+			debounce-interval = 25;
+                };
+                input_Iso18{
+			label = "InputIso18";
+                        gpios = <&pioA PIN_PB25 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x57>;
+			debounce-interval = 25;
+                };
+                input_Iso19{
+			label = "InputIso19";
+                        gpios = <&pioA PIN_PB28 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x58>;
+			debounce-interval = 25;
+                };
+                input_Iso20{
+			label = "InputIso20";
+                        gpios = <&pioA PIN_PB29 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x59>;
+			debounce-interval = 25;
+                };
+                input_Iso21{
+			label = "InputIso21";
+                        gpios = <&pioA PIN_PB30 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x5A>;
+			debounce-interval = 25;
+                };
+                input_Iso22{
+			label = "InputIso22";
+                        gpios = <&pioA PIN_PB31 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x5B>;
+			debounce-interval = 25;
+                };
+                input_Iso23{
+ 			label = "InputIso23";
+                        gpios = <&pioA PIN_PC00 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x5C>;
+			debounce-interval = 25;
+                };
+                input_Iso24{
+			label = "InputIso24";
+                        gpios = <&pioA PIN_PC01 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x5D>;
+			debounce-interval = 25;
+                };
+
+		input_Iso25{
+			label = "InputIso25";
+                        gpios = <&pioA PIN_PC02 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x5E>;
+			debounce-interval = 25;
+                };
+                input_Iso26{
+			label = "InputIso26";
+                        gpios = <&pioA PIN_PC03 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x5F>;
+			debounce-interval = 25;
+                };
+                input_Iso27{
+			label = "InputIso27";
+                        gpios = <&pioA PIN_PC04 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x60>;
+			debounce-interval = 25;
+                };
+                input_Iso28{
+			label = "InputIso28";
+                        gpios = <&pioA PIN_PC05 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x61>;
+			debounce-interval = 25;
+                };
+                input_Iso29{
+			label = "InputIso29";
+                        gpios = <&pioA PIN_PC06 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x62>;
+			debounce-interval = 25;
+                };
+                input_Iso30{
+			label = "InputIso30";
+                        gpios = <&pioA PIN_PC07 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x63>;
+			debounce-interval = 25;
+                };
+                input_Iso31{
+			label = "InputIso31";
+                        gpios = <&pioA PIN_PC08 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x64>;
+			debounce-interval = 25;
+                };
+                input_Iso32{
+			label = "InputIso32";
+                        gpios = <&pioA PIN_PC09 GPIO_ACTIVE_LOW>;
+                        linux,code = <0x65>;
+			debounce-interval = 25
+		};
+		charger_stat1{
+			label = "";
+			gpios = <&pioA PIN_PC25 GPIO_ACTIVE_HIGH>;
+			linux,code = <0x66>;
+			debounce-interval = 25;
+		};
+		charger_stat2{
+                        label = "ChargerStat2";
+                        gpios = <&pioA PIN_PC26 GPIO_ACTIVE_HIGH>;
+                        linux,code = <0x67>;
+                        debounce-interval = 25;
+                };
+		charger_pg{
+                        label = "ChargerPG";
+                        gpios = <&pioA PIN_PC27 GPIO_ACTIVE_HIGH>;
+                        linux,code = <0x68>;
+                        debounce-interval = 25;
+                };
+		uart_cts0{
+			label = "uartCTS0";
+			gpios = <&pioA PIN_PC14 GPIO>;
+			linux,code = <0x69>;
+			debounce-interval = 15;
+		};
+		uart_cts2{
+			label = "uartCTS2";
+                	gpios = <&pioA PIN_PC15 GPIO>;
+                        linux,code = <0x6A>;
+                        debounce-interval = 15;
+		};
+		uart_cts3{
+  			label = "uartCTS3";
+                        gpios = <&pioA PIN_PC16 GPIO>;
+                        linux,code = <0x6B>;
+                        debounce-interval = 15;
+		};
+		uart_cts4{
+  			label = "uartCTS4";
+                        gpios = <&pioA PIN_PC17 GPIO>;
+                        linux,code = <0x6C>;
+                        debounce-interval = 15;
+		};
+		usba_5v_det{
+			label = "usba5Vdet";
+			gpios = <&pioA PIN_PC18 GPIO>;
+			linux,code = <0x6D>;
+                        debounce-interval = 15;
+		}; 
+		usbb_ovcur{
+                      	label = "usbbovcurr";
+                        gpios = <&pioA PIN_PC11 GPIO>;
+                        linux,code = <0x6F>;
+                        debounce-interval = 15;
+		};
+
 	};
 
 	leds {
@@ -540,21 +930,75 @@
 		pinctrl-0 = <&pinctrl_led_gpio_default>;
 		status = "okay"; /* Conflict with pwm0. */
 
-		red {
-			label = "red";
-			gpios = <&pioA PIN_PA10 GPIO_ACTIVE_HIGH>;
-		};
-
 		green {
 			label = "green";
-			gpios = <&pioA PIN_PB1 GPIO_ACTIVE_HIGH>;
+			gpios = <&pioA PIN_PC30 GPIO_ACTIVE_LOW>;
+			default-state = "on";
 		};
 
 		blue {
 			label = "blue";
-			gpios = <&pioA PIN_PA31 GPIO_ACTIVE_HIGH>;
+			gpios = <&pioA PIN_PC31 GPIO_ACTIVE_LOW>;
 			linux,default-trigger = "heartbeat";
 		};
+
+		output1{
+			label = "op1";
+			gpios = <&pioA PIN_PD00 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+
+		output2{
+			label = "op2";
+			gpios = <&pioA PIN_PD01 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+		
+		output3{
+			label = "op3";
+			gpios = <&pioA PIN_PD04 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+
+		output4{
+			label = "op4";
+			gpios = <&pioA PIN_PD05 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+
+		output5{
+			label = "op5";
+			gpios = <&pioA PIN_PD06 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+
+		output6{
+			label = "op6";
+			gpios = <&pioA PIN_PD07 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+		usbb_pwr_en{
+			label = "usbbpwren";
+			gpios = <&pioA PIN_PC21 GPIO_ACTIVE_HIGH>;
+                        default-state = "off";
+
+		};
+		sys_wdog_en{
+			label = "syswdogen";
+			gpios = <&pioA PIN_PC23 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+		sys_wdog{
+			label = "syswdog";
+			gpios = <&pioA PIN_PC24 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+		rst_button{
+			label = "rstbtn";
+			gpios = <&pioA PIN_PA13 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+
 	};
 
 	vddin_3v3: fixed-regulator-vddin_3v3 {
